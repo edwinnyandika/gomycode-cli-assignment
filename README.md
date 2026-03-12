@@ -107,7 +107,7 @@ Then follow the 9 tasks listed in the table above.
 
 The documentation for this assignment is hosted on GitHub Pages:
 
-**👉 [View Live Site](https://yourusername.github.io/gomycode-cli-assignment/)**
+**👉 [View Live Site]([https://github.com/edwinnyandika/gomycode-cli-assignment.git]**
 
 ---
 
@@ -126,7 +126,7 @@ The documentation for this assignment is hosted on GitHub Pages:
 
 **Edwin Nyandika**
 GO MY CODE Software Development Bootcamp
-GitHub: [@yourusername](https://github.com/yourusername)
+GitHub: [@edwinnyandika](https://github.com/edwinnyandika)
 
 ---
 
