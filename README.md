@@ -107,7 +107,7 @@ Then follow the 9 tasks listed in the table above.
 
 The documentation for this assignment is hosted on GitHub Pages:
 
-**👉 [View Live Site]([https://github.com/edwinnyandika/gomycode-cli-assignment.git])**
+**👉 [View Live Site]([(https://gomycode-cli-assignment.vercel.app/)])**
 
 ---
 
