@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GO MY CODE — Git Bash CLI Assignment</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e0a;
+    --bg2: #0f140f;
+    --bg3: #141a14;
+    --panel: #111711;
+    --border: #1e2e1e;
+    --green: #39ff6a;
+    --green2: #2bcc55;
+    --green3: #1a7a35;
+    --green-dim: #0d3d1c;
+    --amber: #ffc542;
+    --red: #ff4d4d;
+    --blue: #4dc9ff;
+    --text: #c8e6c9;
+    --text-dim: #5a7a5a;
+    --text-muted: #3a5a3a;
+    --white: #e8f5e9;
+    --cursor-green: #39ff6a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* GRID BG */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(57,255,106,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,255,106,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    z-index: 1;
+    padding: 80px 40px 60px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: -100px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 400px;
+    background: radial-gradient(ellipse, rgba(57,255,106,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    border: 1px solid var(--green3);
+    background: var(--green-dim);
+    padding: 4px 12px;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 16px;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+
+  h1 span { color: var(--green); }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--text-dim);
+    max-width: 560px;
+    margin: 0 auto 40px;
+    line-height: 1.7;
+    animation: fadeDown 0.6s 0.2s ease both;
+  }
+
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+    animation: fadeDown 0.6s 0.3s ease both;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--green);
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* NAV */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,10,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+  }
+
+  .nav-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+
+  .nav a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .nav a:hover {
+    color: var(--green);
+    border-color: var(--green3);
+    background: var(--green-dim);
+  }
+
+  /* MAIN */
+  .main {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  /* SECTION HEADER */
+  .section-header {
+    margin-bottom: 48px;
+  }
+
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .section-desc {
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* COMMAND CARD */
+  .task-card {
+    margin-bottom: 40px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--panel);
+    transition: border-color 0.3s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .task-card:hover { border-color: var(--green3); }
+
+  .task-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  .task-num {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+    flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(57,255,106,0.2);
+  }
+
+  .task-meta { flex: 1; }
+
+  .task-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 2px;
+  }
+
+  .task-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .task-body { padding: 24px; }
+
+  .task-explain {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+
+  /* TERMINAL BLOCK */
+  .terminal {
+    background: #060b06;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(57,255,106,0.05);
+  }
+
+  .terminal-bar {
+    background: #0d120d;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+  }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .terminal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 6px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .terminal-body {
+    padding: 20px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.9;
+  }
+
+  .line { display: flex; gap: 0; align-items: flex-start; }
+
+  .prompt {
+    color: var(--green);
+    margin-right: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .prompt-path { color: var(--blue); }
+  .prompt-dollar { color: var(--green); }
+
+  .cmd { color: var(--white); padding-left: 8px; word-break: break-all; }
+  .cmd .kw { color: var(--amber); }
+  .cmd .arg { color: var(--green2); }
+  .cmd .flag { color: var(--blue); }
+  .cmd .str { color: #ff9e64; }
+
+  .output-line {
+    color: var(--text-dim);
+    padding-left: 4px;
+  }
+
+  .output-line.success { color: var(--green2); }
+  .output-line.dim { color: var(--text-muted); }
+  .output-line.highlight { color: var(--amber); }
+
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--green);
+    vertical-align: middle;
+    animation: blink 1.1s step-end infinite;
+    margin-left: 2px;
+    opacity: 0.9;
+  }
+
+  /* BREAKDOWN */
+  .breakdown {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-top: 16px;
+  }
+
+  .breakdown-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .breakdown-row:last-child { margin-bottom: 0; }
+
+  .bd-cmd {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--amber);
+    background: rgba(255,197,66,0.08);
+    border: 1px solid rgba(255,197,66,0.2);
+    padding: 2px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .bd-desc { color: var(--text-dim); line-height: 1.6; }
+
+  /* CHEAT SHEET */
+  .cheatsheet {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 60px;
+  }
+
+  .cs-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cs-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .cs-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--white);
+  }
+
+  .cs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0;
+  }
+
+  .cs-item {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    transition: background 0.2s;
+  }
+
+  .cs-item:hover { background: var(--bg3); }
+
+  .cs-command {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+
+  .cs-desc { font-size: 13px; color: var(--text-dim); }
+
+  /* FOOTER */
+  .footer {
+    position: relative;
+    z-index: 1;
+    border-top: 1px solid var(--border);
+    padding: 32px 40px;
+    text-align: center;
+  }
+
+  .footer-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .footer-text span { color: var(--green); }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 4px var(--green); }
+    50% { box-shadow: 0 0 12px var(--green), 0 0 24px rgba(57,255,106,0.3); }
+  }
+
+  /* STAGGER DELAYS */
+  .task-card:nth-child(1) { animation-delay: 0.05s; }
+  .task-card:nth-child(2) { animation-delay: 0.1s; }
+  .task-card:nth-child(3) { animation-delay: 0.15s; }
+  .task-card:nth-child(4) { animation-delay: 0.2s; }
+  .task-card:nth-child(5) { animation-delay: 0.25s; }
+  .task-card:nth-child(6) { animation-delay: 0.3s; }
+  .task-card:nth-child(7) { animation-delay: 0.35s; }
+  .task-card:nth-child(8) { animation-delay: 0.4s; }
+  .task-card:nth-child(9) { animation-delay: 0.45s; }
+
+  @media (max-width: 600px) {
+    .hero { padding: 48px 20px 40px; }
+    .hero-stats { gap: 28px; }
+    .nav { padding: 12px 16px; }
+    .main { padding: 40px 16px 80px; }
+    .task-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .cs-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="badge">// Edwin Nyandika · CLI Assignment Submission</div>
+  <h1>Git Bash <span>CLI</span> Assignment<br>Complete Guide</h1>
+  <p class="hero-sub">
+    A full walkthrough of every command, with terminal previews, explanations,
+    and breakdowns. All tasks done through the CLI — no GUI.
+  </p>
+  <div class="hero-stats">
+    <div class="stat">
+      <span class="stat-num">9</span>
+      <span class="stat-label">Tasks</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">12</span>
+      <span class="stat-label">Commands</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num">0</span>
+      <span class="stat-label">GUI Used</span>
+    </div>
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-label">JUMP TO →</span>
+  <a href="#task1">01 mkdir GOMYCODE</a>
+  <a href="#task2">02 first-repo</a>
+  <a href="#task3">03 .txt file</a>
+  <a href="#task4">04 rm delete</a>
+  <a href="#task5">05 firstname.txt</a>
+  <a href="#task6">06 index.md</a>
+  <a href="#task7">07 echo</a>
+  <a href="#task8">08 mv rename</a>
+  <a href="#task9">09 cp copy</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="section-header">
+    <div class="section-tag">// assignment walkthrough</div>
+    <div class="section-title">Step-by-Step Tasks</div>
+    <div class="section-desc">Each task below shows the exact command to run, a simulated terminal output, and a breakdown of what every part of the command means.</div>
+  </div>
+
+  <!-- ══════════════════ TASK 1 ══════════════════ -->
+  <div class="task-card" id="task1">
+    <div class="task-header">
+      <div class="task-num">01</div>
+      <div class="task-meta">
+        <div class="task-title">Create the GOMYCODE folder in home</div>
+        <div class="task-subtitle">cd ~ &nbsp;→&nbsp; mkdir GOMYCODE</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        First, we navigate to the <strong style="color:var(--white)">home directory</strong> — this is your personal root folder in the system (like <code style="color:var(--amber)">C:/Users/YourName</code> on Windows). Then we create a new folder called GOMYCODE using <code style="color:var(--amber)">mkdir</code> (make directory).
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">cd</span> <span class="arg">~</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">mkdir</span> <span class="arg">GOMYCODE</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line success">Desktop/&nbsp;&nbsp; Documents/&nbsp;&nbsp; Downloads/&nbsp;&nbsp; <span style="color:var(--green);font-weight:700">GOMYCODE/</span></div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">cd</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Change Directory</strong> — moves you into a different folder. It's how you navigate the filesystem.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">~</span>
+          <span class="bd-desc">The <strong style="color:var(--white)">tilde</strong> symbol is a shortcut for your home directory. <code style="color:var(--amber)">cd ~</code> always takes you back home no matter where you are.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">mkdir</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Make Directory</strong> — creates a new folder. The name you give it comes right after.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">ls</span>
+          <span class="bd-desc"><strong style="color:var(--white)">List</strong> — shows all files and folders in your current location. Use it to verify your command worked.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 2 ══════════════════ -->
+  <div class="task-card" id="task2">
+    <div class="task-header">
+      <div class="task-num">02</div>
+      <div class="task-meta">
+        <div class="task-title">Navigate into GOMYCODE and create first-repo</div>
+        <div class="task-subtitle">cd GOMYCODE &nbsp;→&nbsp; mkdir first-repo</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        Now we <strong style="color:var(--white)">enter</strong> the GOMYCODE folder we just created, and inside it, create a second folder called <code style="color:var(--amber)">first-repo</code>. Notice the hyphen — folder names with spaces can cause problems in CLI, so hyphens are commonly used instead.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">cd</span> <span class="arg">GOMYCODE</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">mkdir</span> <span class="arg">first-repo</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line success">first-repo/</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">cd GOMYCODE</span>
+          <span class="bd-desc">Enters the GOMYCODE folder. Notice the prompt changes to <code style="color:var(--amber)">~/GOMYCODE</code> — this confirms you're now inside it.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">mkdir first-repo</span>
+          <span class="bd-desc">Creates the <code style="color:var(--amber)">first-repo</code> folder inside GOMYCODE. The hyphen is part of the name — it's not a flag.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 3 ══════════════════ -->
+  <div class="task-card" id="task3">
+    <div class="task-header">
+      <div class="task-num">03</div>
+      <div class="task-meta">
+        <div class="task-title">Navigate into first-repo and create a .txt file with your last name</div>
+        <div class="task-subtitle">cd first-repo &nbsp;→&nbsp; touch lastname.txt</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        Enter <code style="color:var(--amber)">first-repo</code>, then use the <code style="color:var(--amber)">touch</code> command to create an empty text file named after your last name. In the example below, we use <strong style="color:var(--white)">wick.txt</strong> — replace it with your actual last name.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE/first-repo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">cd</span> <span class="arg">first-repo</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">touch</span> <span class="arg">wick.txt</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line success">wick.txt</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">touch</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Touch</strong> — creates a new, empty file. If the file already exists, it just updates the timestamp. It does NOT open or edit the file.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">wick.txt</span>
+          <span class="bd-desc">The filename. <code style="color:var(--amber)">.txt</code> is the file extension, meaning it's a plain text file. Replace <code style="color:var(--amber)">wick</code> with your own last name.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 4 ══════════════════ -->
+  <div class="task-card" id="task4">
+    <div class="task-header">
+      <div class="task-num">04</div>
+      <div class="task-meta">
+        <div class="task-title">Delete the file you just created</div>
+        <div class="task-subtitle">rm wick.txt</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        The <code style="color:var(--amber)">rm</code> command <strong style="color:var(--red)">permanently deletes</strong> a file. Unlike dragging to the Recycle Bin, there is <strong style="color:var(--red)">no undo</strong>. The file is gone immediately. Always double-check before running <code style="color:var(--amber)">rm</code>.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE/first-repo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">rm</span> <span class="arg">wick.txt</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line dim">(empty — no files)</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">rm</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Remove</strong> — permanently deletes a file. No confirmation, no recycle bin. It's instant and irreversible.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">wick.txt</span>
+          <span class="bd-desc">The exact name of the file to delete. Spelling must be precise — the terminal is case-sensitive.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 5 ══════════════════ -->
+  <div class="task-card" id="task5">
+    <div class="task-header">
+      <div class="task-num">05</div>
+      <div class="task-meta">
+        <div class="task-title">Create a new .txt file with your first name</div>
+        <div class="task-subtitle">touch john.txt</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        Same command as Task 3 — but this time using your <strong style="color:var(--white)">first name</strong>. Replace <code style="color:var(--amber)">john</code> with your actual first name.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE/first-repo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">touch</span> <span class="arg">john.txt</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line success">john.txt</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">touch john.txt</span>
+          <span class="bd-desc">Creates an empty file called <code style="color:var(--amber)">john.txt</code>. The <code style="color:var(--amber)">.txt</code> extension tells the OS it's a plain text file.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 6 ══════════════════ -->
+  <div class="task-card" id="task6">
+    <div class="task-header">
+      <div class="task-num">06</div>
+      <div class="task-meta">
+        <div class="task-title">Create another file called index.md</div>
+        <div class="task-subtitle">touch index.md</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        Create a second file — this time with a <code style="color:var(--amber)">.md</code> extension. <strong style="color:var(--white)">Markdown</strong> is a lightweight formatting language used by developers to write documentation. You'll see it everywhere in coding projects (like README files on GitHub).
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE/first-repo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">touch</span> <span class="arg">index.md</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line success">index.md&nbsp;&nbsp; john.txt</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">.md</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Markdown</strong> extension. Markdown files use simple syntax like <code style="color:var(--amber)"># Heading</code> and <code style="color:var(--amber)">**bold**</code> to format text. Used widely on GitHub.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">ls</span>
+          <span class="bd-desc">Verify both <code style="color:var(--amber)">index.md</code> and <code style="color:var(--amber)">john.txt</code> now exist in the folder.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 7 ══════════════════ -->
+  <div class="task-card" id="task7">
+    <div class="task-header">
+      <div class="task-num">07</div>
+      <div class="task-meta">
+        <div class="task-title">Write "Hello World" into index.md</div>
+        <div class="task-subtitle">echo "Hello World" &gt; index.md</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        The <code style="color:var(--amber)">echo</code> command prints text. The <code style="color:var(--amber)">&gt;</code> symbol <strong style="color:var(--white)">redirects</strong> that output into a file instead of the screen. Together, <code style="color:var(--amber)">echo "text" &gt; file</code> writes text directly into a file. We then use <code style="color:var(--amber)">cat</code> to verify the content was saved.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE/first-repo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">echo</span> <span class="str">"Hello World"</span> &gt; <span class="arg">index.md</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">cat</span> <span class="arg">index.md</span></span>
+          </div>
+          <div class="output-line success">Hello World</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">echo</span>
+          <span class="bd-desc">Prints whatever text follows it to the terminal output.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">"Hello World"</span>
+          <span class="bd-desc">The text to write. Quotes keep the two words together as one argument.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">&gt;</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Redirect operator</strong> — instead of printing to screen, it writes the output into a file. <strong style="color:var(--red)">Warning:</strong> it overwrites the file if it already has content.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">cat</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Concatenate</strong> — reads and displays the contents of a file in the terminal. Used here to verify the write worked.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 8 ══════════════════ -->
+  <div class="task-card" id="task8">
+    <div class="task-header">
+      <div class="task-num">08</div>
+      <div class="task-meta">
+        <div class="task-title">Rename index.md to index.html</div>
+        <div class="task-subtitle">mv index.md index.html</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        The <code style="color:var(--amber)">mv</code> command means <strong style="color:var(--white)">move</strong> — but when the destination is in the same folder, it effectively <strong style="color:var(--white)">renames</strong> the file. No copy is made; the original <code style="color:var(--amber)">index.md</code> disappears and becomes <code style="color:var(--amber)">index.html</code> with all its content intact.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE/first-repo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">mv</span> <span class="arg">index.md</span> <span class="arg">index.html</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line success">index.html&nbsp;&nbsp; john.txt</div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">cat</span> <span class="arg">index.html</span></span>
+          </div>
+          <div class="output-line success">Hello World</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">mv</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Move</strong> — moves a file to a new location. When source and destination are in the same folder, it renames the file.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">index.md</span>
+          <span class="bd-desc">The <strong style="color:var(--white)">source</strong> — the file you want to rename/move.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">index.html</span>
+          <span class="bd-desc">The <strong style="color:var(--white)">destination</strong> — the new name. The content inside the file is preserved; only the name changes.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASK 9 ══════════════════ -->
+  <div class="task-card" id="task9">
+    <div class="task-header">
+      <div class="task-num">09</div>
+      <div class="task-meta">
+        <div class="task-title">Copy index.html into a new README.md</div>
+        <div class="task-subtitle">cp index.html README.md</div>
+      </div>
+    </div>
+    <div class="task-body">
+      <p class="task-explain">
+        The <code style="color:var(--amber)">cp</code> command <strong style="color:var(--white)">copies</strong> a file. Unlike <code style="color:var(--amber)">mv</code>, the original file stays. You end up with two files — <code style="color:var(--amber)">index.html</code> still exists, and a new <code style="color:var(--amber)">README.md</code> is created with identical content.
+      </p>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span class="terminal-title">Git Bash — ~/GOMYCODE/first-repo</span>
+        </div>
+        <div class="terminal-body">
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">cp</span> <span class="arg">index.html</span> <span class="arg">README.md</span></span>
+          </div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">ls</span></span>
+          </div>
+          <div class="output-line success">index.html&nbsp;&nbsp; john.txt&nbsp;&nbsp; README.md</div>
+          <div class="line">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="kw">cat</span> <span class="arg">README.md</span></span>
+          </div>
+          <div class="output-line success">Hello World</div>
+          <div class="line" style="margin-top:6px">
+            <span class="prompt"><span class="prompt-path">~/GOMYCODE/first-repo</span> <span class="prompt-dollar">$</span></span>
+            <span class="cmd"><span class="cursor"></span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">// command breakdown</div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">cp</span>
+          <span class="bd-desc"><strong style="color:var(--white)">Copy</strong> — duplicates a file. The original stays where it is, and a new copy is created at the destination.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">index.html</span>
+          <span class="bd-desc">The <strong style="color:var(--white)">source file</strong> to copy from. This file still exists after the command runs.</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="bd-cmd">README.md</span>
+          <span class="bd-desc">The <strong style="color:var(--white)">destination file</strong> name. A new file is created with the same content as <code style="color:var(--amber)">index.html</code>.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- CHEAT SHEET -->
+  <div class="cheatsheet" id="cheatsheet">
+    <div class="cs-header">
+      <div class="cs-dot"></div>
+      <div class="cs-title">// CLI Command Cheat Sheet</div>
+    </div>
+    <div class="cs-grid">
+      <div class="cs-item">
+        <div class="cs-command">cd ~</div>
+        <div class="cs-desc">Go to home directory</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">cd foldername</div>
+        <div class="cs-desc">Enter a folder</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">cd ..</div>
+        <div class="cs-desc">Go up one folder level</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">mkdir foldername</div>
+        <div class="cs-desc">Create a new folder</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">touch filename</div>
+        <div class="cs-desc">Create an empty file</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">rm filename</div>
+        <div class="cs-desc">Permanently delete a file</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">ls</div>
+        <div class="cs-desc">List files in current folder</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">cat filename</div>
+        <div class="cs-desc">Show file contents</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">echo "text" > file</div>
+        <div class="cs-desc">Write text into a file</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">mv old new</div>
+        <div class="cs-desc">Move or rename a file</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">cp source dest</div>
+        <div class="cs-desc">Copy a file</div>
+      </div>
+      <div class="cs-item">
+        <div class="cs-command">pwd</div>
+        <div class="cs-desc">Show current directory path</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p class="footer-text">
+    <span>Edwin Nyandika</span> — GO MY CODE Bootcamp &nbsp;·&nbsp;
+    Git Bash CLI Assignment &nbsp;·&nbsp;
+    <span>9 Tasks Completed</span>
+  </p>
+</footer>
+
+<script>
+  // Animate task cards on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.task-card').forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(24px)';
+    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(card);
+  });
+</script>
+
+</body>
+</html>
